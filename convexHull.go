@@ -33,6 +33,14 @@ func (s *Stack) pop() Point {
 	return Point{-1, -1}
 }
 
+func (s *Stack) peek() Point {
+	if !s.isEmpty() {
+		last := s.stack[len(s.stack)-1]
+		return last
+	}
+	return Point{-1, -1}
+}
+
 func orientedArea(p1 Point, p2 Point, p3 Point) float64 {
 	vectorOne := Point{p2.x - p1.x, p2.y - p1.y}
 	vectorTwo := Point{p3.x - p2.x, p3.y - p2.y}
@@ -44,7 +52,7 @@ func orientedArea(p1 Point, p2 Point, p3 Point) float64 {
 // based on Graham's scan calculating polar angles in reference to the lowest Y-coordinate.
 func findPolarAngle(p1 Point, p2 Point) float64 {
 	xVector := p2.x - p1.x
-	yVector := p1.y - p1.y
+	yVector := p2.y - p1.y
 
 	if xVector < 0 {
 		return math.Pi + math.Atan(yVector/xVector)
@@ -67,15 +75,39 @@ func findSmallestY(points []Point) Point {
 
 func sortByPolarAngle(points []Point, smallestY Point) {
 	sort.Slice(points, func(i, j int) bool {
-		return findPolarAngle(smallestY, points[i]) > findPolarAngle(smallestY, points[j])
+		return findPolarAngle(smallestY, points[i]) < findPolarAngle(smallestY, points[j])
 	})
 }
 
 func grahamsScan(points []Point) []Point {
 	startingPoint := findSmallestY(points)
 	sortByPolarAngle(points, startingPoint)
+	stack := new(Stack)
+
+	pointOne := points[0]
+	pointTwo := points[1]
+
+	stack.push(pointOne)
+	stack.push(pointTwo)
+
+	for i := 2; i < len(points); i++ {
+		if orientedArea(pointOne, pointTwo, points[i]) < 0 {
+			stack.push(points[i])
+			pointOne = pointTwo
+			pointTwo = points[i]
+		} else {
+			for orientedArea(pointOne, pointTwo, points[i]) > 0 {
+				stack.pop()
+				pointTwo = pointOne
+				pointOne = stack.peek()
+			}
+		}
+	}
+
+	return stack.stack
 }
 
 func main() {
-
+	pointSlice := []Point{{x: 1, y: 2}, {x: 1.5, y: 4}, {x: 1.5, y: 3}, {x: 6, y: 3}}
+	fmt.Println(grahamsScan(pointSlice))
 }
