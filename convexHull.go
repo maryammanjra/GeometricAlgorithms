@@ -43,8 +43,7 @@ func (s *Stack) peek() Point {
 
 func orientedArea(p1 Point, p2 Point, p3 Point) float64 {
 	vectorOne := Point{p2.x - p1.x, p2.y - p1.y}
-	vectorTwo := Point{p3.x - p2.x, p3.y - p2.y}
-	fmt.Println(vectorOne)
+	vectorTwo := Point{p3.x - p1.x, p3.y - p1.y}
 	return (vectorOne.x * vectorTwo.y) - (vectorOne.y * vectorTwo.x)
 }
 
@@ -91,16 +90,17 @@ func grahamsScan(points []Point) []Point {
 	stack.push(pointTwo)
 
 	for i := 2; i < len(points); i++ {
-		if orientedArea(pointOne, pointTwo, points[i]) < 0 {
+		if orientedArea(pointOne, pointTwo, points[i]) > 0 {
 			stack.push(points[i])
 			pointOne = pointTwo
 			pointTwo = points[i]
-		} else {
-			for orientedArea(pointOne, pointTwo, points[i]) > 0 {
+		} else if orientedArea(pointOne, pointTwo, points[i]) < 0 {
+			for orientedArea(pointOne, pointTwo, points[i]) < 0 {
 				stack.pop()
 				pointTwo = pointOne
-				pointOne = stack.peek()
+				pointOne = stack.stack[len(stack.stack)-2]
 			}
+			stack.push(points[i])
 		}
 	}
 
@@ -108,6 +108,6 @@ func grahamsScan(points []Point) []Point {
 }
 
 func main() {
-	pointSlice := []Point{{x: 1, y: 2}, {x: 1.5, y: 4}, {x: 1.5, y: 3}, {x: 6, y: 3}}
-	fmt.Println(grahamsScan(pointSlice))
+	pointSlice := []Point{{x: 1, y: 2}, {x: 1.5, y: 4}, {x: 2, y: 3.5}, {x: 6, y: 3}, {x: 4, y: 3.8}, {x: 5, y: 8}}
+	fmt.Println("Convex hull ", grahamsScan(pointSlice))
 }
